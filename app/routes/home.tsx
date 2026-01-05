@@ -1,4 +1,5 @@
 import type { Route } from "./+types/home";
+import { ThemeToggle } from "~/components/ThemeToggle";
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -11,6 +12,11 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
       <div className="container mx-auto px-4 py-16">
+        {/* Theme Toggle - Top Right */}
+        <div className="flex justify-end mb-8">
+          <ThemeToggle />
+        </div>
+
         <div className="max-w-4xl mx-auto text-center space-y-8">
           {/* Header */}
           <div className="space-y-4">

@@ -9,6 +9,8 @@ import {
 
 import type { Route } from "./+types/root";
 import "./app.css";
+import { AppProvider, useAppContext } from "./context/AppContext";
+import { useEffect } from "react";
 
 export const links: Route.LinksFunction = () => [
   { rel: "preconnect", href: "https://fonts.googleapis.com" },
@@ -22,6 +24,29 @@ export const links: Route.LinksFunction = () => [
     href: "https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap",
   },
 ];
+
+/**
+ * ThemeApplier Component
+ * 
+ * WHAT PROBLEM THIS SOLVES:
+ * - Applies theme class to body element based on context
+ * - Must be separate component to access context (can't use hook in Layout)
+ */
+function ThemeApplier({ children }: { children: React.ReactNode }) {
+  const { resolvedTheme } = useAppContext();
+
+  useEffect(() => {
+    // Apply theme class to document element
+    const root = document.documentElement;
+    if (resolvedTheme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [resolvedTheme]);
+
+  return <>{children}</>;
+}
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
@@ -42,7 +67,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 export default function App() {
-  return <Outlet />;
+  return (
+    <AppProvider>
+      <ThemeApplier>
+        <Outlet />
+      </ThemeApplier>
+    </AppProvider>
+  );
 }
 
 export function ErrorBoundary({ error }: Route.ErrorBoundaryProps) {

@@ -2,6 +2,10 @@ import type { Route } from "./+types/customers";
 import { useLoaderData } from "react-router";
 import { getCollection, Collections } from "~/lib/db/db.server";
 import type { Customer, SerializedCustomer, CustomerQueryParams } from "~/types/customer";
+import { useAppContext } from "~/context/AppContext";
+import { SharedNavigation } from "~/components/SharedNavigation";
+import { ThemeToggle } from "~/components/ThemeToggle";
+import React, { useCallback, useMemo } from 'react';
 
 /**
  * Loader function - fetches customers from MongoDB with search, filter, and sort
@@ -92,14 +96,97 @@ export async function loader({ request }: Route.LoaderArgs): Promise<SerializedC
 }
 
 /**
+ * CustomerCard Component
+ * 
+ * WHAT PROBLEM THIS SOLVES:
+ * - Prevents unnecessary re-renders of individual customer cards
+ * - Only re-renders when customer data changes
+ * 
+ * WHY React.memo:
+ * - Customer list can be long (100+ items)
+ * - When filters change, only the list updates, not individual cards
+ * - Significant performance improvement for large lists
+ */
+interface CustomerCardProps {
+    customer: SerializedCustomer;
+}
+
+const CustomerCard = React.memo(function CustomerCard({ customer }: CustomerCardProps) {
+    return (
+        <div
+            className="p-6 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+        >
+            <div className="flex items-start justify-between">
+                <div className="flex-1">
+                    {/* Customer Name */}
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
+                        {customer.name}
+                    </h3>
+
+                    {/* Customer Email */}
+                    <p className="text-slate-600 dark:text-slate-400 mt-1">
+                        {customer.email}
+                    </p>
+
+                    {/* Company (if exists) */}
+                    {customer.company && (
+                        <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
+                            {customer.company}
+                        </p>
+                    )}
+
+                    {/* Tags */}
+                    {customer.tags.length > 0 && (
+                        <div className="flex gap-2 mt-3">
+                            {customer.tags.map((tag: string) => (
+                                <span
+                                    key={tag}
+                                    className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded"
+                                >
+                                    {tag}
+                                </span>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Status Badge and Edit Button */}
+                <div className="flex flex-col items-end gap-2">
+                    <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${customer.status === 'active'
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                            : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
+                            }`}
+                    >
+                        {customer.status}
+                    </span>
+                    <a
+                        href={`/customers/${customer._id}`}
+                        className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors"
+                    >
+                        Edit
+                    </a>
+                </div>
+            </div>
+        </div>
+    );
+});
+
+/**
  * Customer List Component
  * 
- * Renders customer list with search, filter, and sort controls
- * All filters use URL query params as single source of truth
+ * PERFORMANCE OPTIMIZATIONS:
+ * - useCallback for memoized functions (buildUrl, event handlers)
+ * - useMemo for computed values (hasActiveFilters)
+ * - React.memo for CustomerCard component
+ * - Context integration for filter preferences
  */
 export default function Customers() {
     // Get typed loader data
     const customers = useLoaderData<typeof loader>();
+
+    // Get context for theme and filter preferences
+    const { setFilterPreferences } = useAppContext();
 
     // Parse current URL search params for controlled inputs
     const url = typeof window !== 'undefined' ? new URL(window.location.href) : new URL('http://localhost');
@@ -110,8 +197,16 @@ export default function Customers() {
     const currentSortField = searchParams.get('sortField') || 'createdAt';
     const currentSortOrder = searchParams.get('sortOrder') || 'desc';
 
-    // Helper to build URL with updated params
-    const buildUrl = (updates: Record<string, string | null>) => {
+    /**
+     * Helper to build URL with updated params
+     * 
+     * WHY useCallback:
+     * - This function is passed to child components and used in event handlers
+     * - Without useCallback, it would be recreated on every render
+     * - This would cause child components to re-render unnecessarily
+     * - Dependencies: searchParams changes when URL changes
+     */
+    const buildUrl = useCallback((updates: Record<string, string | null>) => {
         const newParams = new URLSearchParams(searchParams);
         Object.entries(updates).forEach(([key, value]) => {
             if (value === null || value === '') {
@@ -122,11 +217,38 @@ export default function Customers() {
         });
         const paramString = newParams.toString();
         return `/customers${paramString ? `?${paramString}` : ''}`;
-    };
+    }, [searchParams]);
 
-    // Check if any filters are active
-    const hasActiveFilters = currentSearch || currentStatus || currentTags ||
-        (currentSortField !== 'createdAt' || currentSortOrder !== 'desc');
+    /**
+     * Save current filters to context when they change
+     * This allows preferences to persist across navigation
+     * 
+     * WHY useCallback:
+     * - Prevents recreation of this function on every render
+     * - Only recreates when dependencies change
+     */
+    const saveFilterPreferences = useCallback(() => {
+        setFilterPreferences({
+            search: currentSearch || undefined,
+            status: (currentStatus as any) || undefined,
+            tags: currentTags || undefined,
+            sortField: (currentSortField as any) || undefined,
+            sortOrder: (currentSortOrder as any) || undefined,
+        });
+    }, [currentSearch, currentStatus, currentTags, currentSortField, currentSortOrder, setFilterPreferences]);
+
+    /**
+     * Check if any filters are active
+     * 
+     * WHY useMemo:
+     * - This is a computed value based on current filters
+     * - Without useMemo, it would be recalculated on every render
+     * - useMemo caches the result until dependencies change
+     */
+    const hasActiveFilters = useMemo(() => {
+        return currentSearch || currentStatus || currentTags ||
+            (currentSortField !== 'createdAt' || currentSortOrder !== 'desc');
+    }, [currentSearch, currentStatus, currentTags, currentSortField, currentSortOrder]);
 
     return (
         <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -142,26 +264,18 @@ export default function Customers() {
                         </p>
                     </div>
                     <div className="flex gap-2">
-                        <a
-                            href="/"
-                            className="px-4 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-700 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 font-medium rounded-lg transition-colors flex items-center gap-2"
-                        >
-                            <span>🏠</span>
-                            <span>Home</span>
-                        </a>
-                        <a
-                            href="/dashboard"
-                            className="px-4 py-2 bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors flex items-center gap-2"
-                        >
-                            <span>📊</span>
-                            <span>Dashboard</span>
-                        </a>
-                        <a
-                            href="/customers/new"
-                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors"
-                        >
-                            + New Customer
-                        </a>
+                        <ThemeToggle />
+                        <SharedNavigation
+                            currentPath="/customers"
+                            additionalButtons={[
+                                {
+                                    href: '/customers/new',
+                                    label: 'New Customer',
+                                    icon: '➕',
+                                    variant: 'primary',
+                                },
+                            ]}
+                        />
                     </div>
                 </div>
 
@@ -339,63 +453,7 @@ export default function Customers() {
                     <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
                         <div className="divide-y divide-slate-200 dark:divide-slate-700">
                             {customers.map((customer) => (
-                                <div
-                                    key={customer._id}
-                                    className="p-6 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-                                >
-                                    <div className="flex items-start justify-between">
-                                        <div className="flex-1">
-                                            {/* Customer Name */}
-                                            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50">
-                                                {customer.name}
-                                            </h3>
-
-                                            {/* Customer Email */}
-                                            <p className="text-slate-600 dark:text-slate-400 mt-1">
-                                                {customer.email}
-                                            </p>
-
-                                            {/* Company (if exists) */}
-                                            {customer.company && (
-                                                <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">
-                                                    {customer.company}
-                                                </p>
-                                            )}
-
-                                            {/* Tags */}
-                                            {customer.tags.length > 0 && (
-                                                <div className="flex gap-2 mt-3">
-                                                    {customer.tags.map((tag: string) => (
-                                                        <span
-                                                            key={tag}
-                                                            className="px-2 py-1 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-300 text-xs rounded"
-                                                        >
-                                                            {tag}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Status Badge and Edit Button */}
-                                        <div className="flex flex-col items-end gap-2">
-                                            <span
-                                                className={`px-3 py-1 rounded-full text-xs font-medium ${customer.status === 'active'
-                                                    ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                                                    : 'bg-slate-100 text-slate-700 dark:bg-slate-700 dark:text-slate-300'
-                                                    }`}
-                                            >
-                                                {customer.status}
-                                            </span>
-                                            <a
-                                                href={`/customers/${customer._id}`}
-                                                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors"
-                                            >
-                                                Edit
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
+                                <CustomerCard key={customer._id} customer={customer} />
                             ))}
                         </div>
                     </div>
