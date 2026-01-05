@@ -1,4 +1,5 @@
 import type { Route } from "./+types/home";
+import { ThemeToggle } from "~/components/ThemeToggle";
 
 export function meta({ }: Route.MetaArgs) {
   return [
@@ -11,6 +12,11 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-950 dark:to-slate-900">
       <div className="container mx-auto px-4 py-16">
+        {/* Theme Toggle - Top Right */}
+        <div className="flex justify-end mb-8">
+          <ThemeToggle />
+        </div>
+
         <div className="max-w-4xl mx-auto text-center space-y-8">
           {/* Header */}
           <div className="space-y-4">
@@ -53,6 +59,24 @@ export default function Home() {
                 Real-time statistics and aggregated insights
               </p>
             </div>
+          </div>
+
+          {/* Navigation Buttons */}
+          <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="/customers"
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
+            >
+              <span>📇</span>
+              <span>View Customers</span>
+            </a>
+            <a
+              href="/dashboard"
+              className="px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
+            >
+              <span>📊</span>
+              <span>View Dashboard</span>
+            </a>
           </div>
 
           {/* Tech Stack */}
