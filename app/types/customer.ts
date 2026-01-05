@@ -217,3 +217,76 @@ export type SerializedCustomer = Omit<Customer, '_id' | 'createdAt' | 'updatedAt
     createdAt: string;
     updatedAt: string;
 };
+
+/**
+ * Customer Sort Field Type
+ * 
+ * WHY TYPE ALIAS?
+ * - Literal type for sortable fields
+ * - Can be extended with more fields later (e.g., 'name', 'email')
+ * 
+ * USAGE IN LOADERS:
+ * - Validates sort field from URL query params
+ */
+export type CustomerSortField = 'createdAt';
+
+/**
+ * Customer Sort Order Type
+ * 
+ * WHY TYPE ALIAS?
+ * - Standard ascending/descending sort directions
+ * - Maps to MongoDB sort values (1 for asc, -1 for desc)
+ * 
+ * USAGE IN LOADERS:
+ * - Validates sort order from URL query params
+ */
+export type CustomerSortOrder = 'asc' | 'desc';
+
+/**
+ * Customer Query Parameters Interface
+ * 
+ * WHY INTERFACE?
+ * - Represents URL query parameter structure
+ * - All fields are optional (query params may not be present)
+ * - Can be extended with more filter options later
+ * 
+ * USAGE IN LOADERS:
+ * - Type for parsed URL search params
+ * - Ensures type safety when building MongoDB queries
+ * 
+ * URL EXAMPLES:
+ * - ?search=john
+ * - ?status=active
+ * - ?tags=vip,enterprise
+ * - ?sortField=createdAt&sortOrder=desc
+ * - ?search=john&status=active&sortField=createdAt&sortOrder=desc
+ */
+export interface CustomerQueryParams {
+    /**
+     * Search term for name and email (case-insensitive)
+     * @example "john" matches "John Doe" and "john@example.com"
+     */
+    search?: string;
+
+    /**
+     * Filter by customer status
+     */
+    status?: CustomerStatus;
+
+    /**
+     * Comma-separated tags to filter by
+     * Customers must have at least one of the specified tags
+     * @example "vip,enterprise"
+     */
+    tags?: string;
+
+    /**
+     * Field to sort by
+     */
+    sortField?: CustomerSortField;
+
+    /**
+     * Sort order (ascending or descending)
+     */
+    sortOrder?: CustomerSortOrder;
+}
