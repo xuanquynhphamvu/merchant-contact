@@ -1,5 +1,5 @@
 import type { Route } from "./+types/customers.$id";
-import { useLoaderData, useActionData, redirect } from "react-router";
+import { useLoaderData, useActionData, redirect, Form } from "react-router";
 import { ObjectId } from "mongodb";
 import { getCollection, Collections } from "~/lib/db/db.server";
 import type { Customer, SerializedCustomer, CustomerStatus } from "~/types/customer";
@@ -60,14 +60,20 @@ export async function loader({ params }: Route.LoaderArgs): Promise<SerializedCu
 }
 
 /**
- * Action function - handles customer update submission
+ * Action function - handles customer update and delete submissions
  * 
- * FLOW:
+ * FLOW (UPDATE):
  * 1. Extract form data from request
  * 2. Validate required fields
  * 3. Update MongoDB using $set operator
  * 4. Set updatedAt using $currentDate
  * 5. Redirect to customers list
+ * 
+ * FLOW (DELETE):
+ * 1. Validate ObjectId format
+ * 2. Delete from MongoDB using deleteOne
+ * 3. Handle not-found case
+ * 4. Redirect to customers list
  * 
  * TYPE SAFETY:
  * - Uses Route.ActionArgs for typed request and params
@@ -85,6 +91,37 @@ export async function action({ request, params }: Route.ActionArgs) {
         };
     }
 
+    // Handle DELETE method
+    if (request.method === "DELETE") {
+        try {
+            // Get typed MongoDB collection
+            const collection = await getCollection<Customer>(Collections.CUSTOMERS);
+
+            // Delete customer by ID
+            const result = await collection.deleteOne({ _id: new ObjectId(id) });
+
+            // Check if customer was found and deleted
+            if (result.deletedCount === 0) {
+                return {
+                    errors: {
+                        _form: "Customer not found",
+                    },
+                };
+            }
+
+            // Redirect to customers list after successful deletion
+            return redirect("/customers");
+        } catch (error) {
+            console.error("Failed to delete customer:", error);
+            return {
+                errors: {
+                    _form: "Failed to delete customer. Please try again.",
+                },
+            };
+        }
+    }
+
+    // Handle UPDATE method (POST)
     // Extract form data from POST request
     const formData = await request.formData();
 
@@ -203,6 +240,33 @@ export default function EditCustomer() {
                         defaultValues={customer}
                         submitLabel="Update Customer"
                     />
+                </div>
+
+                {/* Delete Section */}
+                <div className="mt-8 pt-8 border-t border-slate-200 dark:border-slate-700">
+                    <div className="bg-red-50 dark:bg-red-950/20 rounded-lg border border-red-200 dark:border-red-900 p-6">
+                        <h2 className="text-lg font-semibold text-red-900 dark:text-red-100 mb-2">
+                            Danger Zone
+                        </h2>
+                        <p className="text-sm text-red-700 dark:text-red-300 mb-4">
+                            Once you delete this customer, there is no going back. Please be certain.
+                        </p>
+                        <Form
+                            method="DELETE"
+                            onSubmit={(e) => {
+                                if (!confirm("Are you sure you want to delete this customer? This action cannot be undone.")) {
+                                    e.preventDefault();
+                                }
+                            }}
+                        >
+                            <button
+                                type="submit"
+                                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800"
+                            >
+                                Delete Customer
+                            </button>
+                        </Form>
+                    </div>
                 </div>
             </div>
         </div>
