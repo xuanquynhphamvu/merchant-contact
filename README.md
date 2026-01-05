@@ -1,87 +1,154 @@
-# Welcome to React Router!
+# Merchant Contact Manager
 
-A modern, production-ready template for building full-stack React applications using React Router.
+A production-ready customer contact management system built with modern web technologies.
 
-[![Open in StackBlitz](https://developer.stackblitz.com/img/open_in_stackblitz.svg)](https://stackblitz.com/github/remix-run/react-router-templates/tree/main/default)
+## 🚀 Tech Stack
 
-## Features
+- **Framework**: React Router v7 (Framework Mode)
+- **Language**: TypeScript (Strict Mode)
+- **Database**: MongoDB
+- **Styling**: Tailwind CSS v4
+- **UI Components**: Shadcn UI
+- **Validation**: Zod
+- **Runtime**: Node.js
 
-- 🚀 Server-side rendering
-- ⚡️ Hot Module Replacement (HMR)
-- 📦 Asset bundling and optimization
-- 🔄 Data loading and mutations
-- 🔒 TypeScript by default
-- 🎉 TailwindCSS for styling
-- 📖 [React Router docs](https://reactrouter.com/)
+## 📁 Project Structure
 
-## Getting Started
+```
+merchant-contact/
+├── app/
+│   ├── routes/              # React Router routes
+│   ├── components/          # Reusable UI components
+│   │   └── ui/             # Shadcn UI components
+│   ├── context/            # React context providers
+│   ├── types/              # TypeScript type definitions
+│   ├── utils/              # Utility functions
+│   ├── lib/                # Core libraries
+│   │   ├── db/            # MongoDB connection & models
+│   │   └── validation/    # Zod validation schemas
+│   ├── root.tsx           # Root layout
+│   └── app.css            # Global styles
+├── public/                 # Static assets
+└── react-router.config.ts # React Router configuration
+```
+
+## 🛠️ Setup Instructions
+
+### Prerequisites
+
+- Node.js 18+ installed
+- MongoDB installed locally or MongoDB Atlas account
+- MongoDB Compass (optional, for GUI)
 
 ### Installation
 
-Install the dependencies:
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
 
-```bash
-npm install
+2. **Set up environment variables**:
+   Create a `.env` file in the root directory:
+   ```env
+   MONGODB_URI=mongodb://localhost:27017/merchant-contact
+   NODE_ENV=development
+   ```
+
+3. **Start MongoDB** (if using local installation):
+   ```bash
+   # macOS (with Homebrew)
+   brew services start mongodb-community
+
+   # Or run manually
+   mongod --config /usr/local/etc/mongod.conf
+   ```
+
+4. **Run the development server**:
+   ```bash
+   npm run dev
+   ```
+
+5. **Open your browser**:
+   Navigate to `http://localhost:5173`
+
+## 📝 Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run typecheck` - Run TypeScript type checking
+
+## 🎯 Features (Planned)
+
+### Phase 1: Foundation ✅
+- [x] Project initialization
+- [x] TypeScript configuration
+- [x] Tailwind CSS + Shadcn UI setup
+- [x] Folder structure
+- [x] Type definitions
+
+### Phase 2: MongoDB Integration
+- [ ] MongoDB connection setup
+- [ ] Customer model & validation
+- [ ] API routes (CRUD)
+
+### Phase 3: Core Features
+- [ ] Customer list page
+- [ ] Create customer form
+- [ ] Edit customer form
+- [ ] Customer detail view
+- [ ] Delete functionality
+
+### Phase 4: Advanced Features
+- [ ] Search functionality
+- [ ] Filter by status/tags
+- [ ] Dashboard with statistics
+- [ ] Pagination
+- [ ] Bulk operations
+
+## 🗄️ Database Schema
+
+### Customer Collection
+
+```typescript
+{
+  _id: ObjectId,
+  name: string,
+  email: string,
+  phone?: string,
+  company?: string,
+  status: 'active' | 'inactive',
+  tags: string[],
+  notes?: string,
+  createdAt: Date,
+  updatedAt: Date
+}
 ```
 
-### Development
+## 🎨 UI Components
 
-Start the development server with HMR:
+Using Shadcn UI components:
+- Button
+- Input
+- Form
+- Card
+- Badge
+- Dialog
+- Table
+- And more...
 
-```bash
-npm run dev
-```
+## 📚 Learning Resources
 
-Your application will be available at `http://localhost:5173`.
+- [React Router v7 Docs](https://reactrouter.com)
+- [TypeScript Handbook](https://www.typescriptlang.org/docs/)
+- [MongoDB Node.js Driver](https://www.mongodb.com/docs/drivers/node/)
+- [Tailwind CSS](https://tailwindcss.com)
+- [Shadcn UI](https://ui.shadcn.com)
 
-## Building for Production
+## 🤝 Contributing
 
-Create a production build:
+This is a learning project. Feel free to experiment and extend functionality!
 
-```bash
-npm run build
-```
+## 📄 License
 
-## Deployment
-
-### Docker Deployment
-
-To build and run using Docker:
-
-```bash
-docker build -t my-app .
-
-# Run the container
-docker run -p 3000:3000 my-app
-```
-
-The containerized application can be deployed to any platform that supports Docker, including:
-
-- AWS ECS
-- Google Cloud Run
-- Azure Container Apps
-- Digital Ocean App Platform
-- Fly.io
-- Railway
-
-### DIY Deployment
-
-If you're familiar with deploying Node applications, the built-in app server is production-ready.
-
-Make sure to deploy the output of `npm run build`
-
-```
-├── package.json
-├── package-lock.json (or pnpm-lock.yaml, or bun.lockb)
-├── build/
-│   ├── client/    # Static assets
-│   └── server/    # Server-side code
-```
-
-## Styling
-
-This template comes with [Tailwind CSS](https://tailwindcss.com/) already configured for a simple default starting experience. You can use whatever CSS framework you prefer.
-
----
-
-Built with ❤️ using React Router.
+MIT
