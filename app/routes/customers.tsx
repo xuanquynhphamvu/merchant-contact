@@ -124,8 +124,8 @@ export default function Customers() {
                                             )}
                                         </div>
 
-                                        {/* Status Badge */}
-                                        <div>
+                                        {/* Status Badge and Edit Button */}
+                                        <div className="flex flex-col items-end gap-2">
                                             <span
                                                 className={`px-3 py-1 rounded-full text-xs font-medium ${customer.status === 'active'
                                                     ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
@@ -134,6 +134,12 @@ export default function Customers() {
                                             >
                                                 {customer.status}
                                             </span>
+                                            <a
+                                                href={`/customers/${customer._id}`}
+                                                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium rounded transition-colors"
+                                            >
+                                                Edit
+                                            </a>
                                         </div>
                                     </div>
                                 </div>

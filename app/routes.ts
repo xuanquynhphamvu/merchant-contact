@@ -4,5 +4,6 @@ export default [
     index("routes/home.tsx"),
     route("customers", "routes/customers.tsx"),
     route("customers/new", "routes/customers.new.tsx"),
+    route("customers/:id", "routes/customers.$id.tsx"),
     route("api/test-connection", "routes/api/test-connection.ts"),
 ] satisfies RouteConfig;
