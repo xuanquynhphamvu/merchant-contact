@@ -55,6 +55,24 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Navigation Buttons */}
+          <div className="mt-12 flex flex-col sm:flex-row gap-4 justify-center">
+            <a
+              href="/customers"
+              className="px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
+            >
+              <span>📇</span>
+              <span>View Customers</span>
+            </a>
+            <a
+              href="/dashboard"
+              className="px-6 py-3 bg-slate-600 hover:bg-slate-700 text-white font-medium rounded-lg transition-colors shadow-sm flex items-center justify-center gap-2"
+            >
+              <span>📊</span>
+              <span>View Dashboard</span>
+            </a>
+          </div>
+
           {/* Tech Stack */}
           <div className="mt-12 p-8 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
             <h2 className="text-2xl font-bold mb-6 text-slate-900 dark:text-slate-50">
